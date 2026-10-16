@@ -1,0 +1,29 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+issueTrackerURL = "https://github.com/traelmyx/disable-structures-reborn/issues"
+
+[[mods]]
+modId = "${id}"
+version = "${version}"
+displayName = "${name}"
+authors = "traelmyx, Bennyboy1695"
+${logo_key} = "assets/disablestructures/icon.png"
+description = '''Stop chosen structures from generating, by id or by mod. Based on Disable Structures by Bennyboy1695.'''
+
+[[dependencies.${id}]]
+modId = "neoforge"
+type = "required"
+versionRange = "[${neoforge_major},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${id}]]
+modId = "minecraft"
+type = "required"
+versionRange = "${mc_dep}"
+ordering = "NONE"
+side = "BOTH"
+
+[[mixins]]
+config = "disablestructures.mixins.json"
