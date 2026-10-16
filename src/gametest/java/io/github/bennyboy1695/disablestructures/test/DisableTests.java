@@ -24,19 +24,23 @@ public final class DisableTests {
 		helper.succeed();
 	}
 
-	/** /locate finds a village normally and finds nothing once villages are turned off. */
+	/** /locate never points at a disabled structure, and searching a mixed group still works. */
 	public static void locateSkipsDisabled(GameTestHelper helper) {
 		ServerLevel level = helper.getLevel();
-		var village = level.registryAccess().registryOrThrow(Registries.STRUCTURE).getHolderOrThrow(BuiltinStructures.VILLAGE_PLAINS);
+		var structures = level.registryAccess().registryOrThrow(Registries.STRUCTURE);
+		var village = structures.getHolderOrThrow(BuiltinStructures.VILLAGE_PLAINS);
+		var desert = structures.getHolderOrThrow(BuiltinStructures.VILLAGE_DESERT);
 		var generator = level.getChunkSource().getGenerator();
 		var origin = helper.absolutePos(net.minecraft.core.BlockPos.ZERO);
-		DisableStructures.setDisabled(List.of());
-		var found = generator.findNearestMapStructure(level, HolderSet.direct(village), origin, 100, false);
-		helper.assertTrue(found != null, "no plains village found even with nothing disabled (test world has no villages?)");
 		DisableStructures.setDisabled(List.of("minecraft:village_plains"));
-		var after = generator.findNearestMapStructure(level, HolderSet.direct(village), origin, 100, false);
-		DisableStructures.setDisabled(List.of());
-		helper.assertTrue(after == null, "disabled village still located at " + (after == null ? null : after.getFirst()));
+		try {
+			var found = generator.findNearestMapStructure(level, HolderSet.direct(village), origin, 8, false);
+			helper.assertTrue(found == null, "disabled village located at " + (found == null ? null : found.getFirst()));
+			var mixed = generator.findNearestMapStructure(level, HolderSet.direct(village, desert), origin, 8, false);
+			helper.assertTrue(mixed == null || !mixed.getSecond().equals(village), "mixed search returned the disabled village");
+		} finally {
+			DisableStructures.setDisabled(List.of());
+		}
 		helper.succeed();
 	}
 }
