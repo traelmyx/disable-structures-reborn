@@ -24,10 +24,22 @@ import java.util.List;
 @Mixin(ChunkGenerator.class)
 public class MixinChunkGenerator {
 	@Inject(method = "tryGenerateStructure", at = @At("HEAD"), cancellable = true)
+	//? if >=26.3 {
+	/*private void disablestructures$skipDisabled(StructureSet.StructureSelectionEntry entry, StructureManager structureManager, RegistryAccess registryAccess,
+	                                            RandomState randomState, StructureTemplateManager templateManager, long seed, ChunkAccess chunk,
+	                                            ChunkPos chunkPos, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension,
+	                                            net.minecraft.world.level.biome.Climate.Sampler sampler, CallbackInfoReturnable<Boolean> cir) {
+	*///?} else if >=1.21.11 {
+	/*private void disablestructures$skipDisabled(StructureSet.StructureSelectionEntry entry, StructureManager structureManager, RegistryAccess registryAccess,
+	                                            RandomState randomState, StructureTemplateManager templateManager, long seed, ChunkAccess chunk,
+	                                            ChunkPos chunkPos, SectionPos sectionPos, net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> dimension,
+	                                            CallbackInfoReturnable<Boolean> cir) {
+	*///?} else {
 	private void disablestructures$skipDisabled(StructureSet.StructureSelectionEntry entry, StructureManager structureManager, RegistryAccess registryAccess,
 	                                            RandomState randomState, StructureTemplateManager templateManager, long seed, ChunkAccess chunk,
 	                                            ChunkPos chunkPos, SectionPos sectionPos, CallbackInfoReturnable<Boolean> cir) {
-		var id = entry.structure().unwrapKey().map(key -> key.location()).orElse(null);
+	//?}
+		var id = entry.structure().unwrapKey().map(DisableStructures::id).orElse(null);
 		if (DisableStructures.isDisabled(id)) {
 			if (DisableStructures.debug) DisableStructures.LOGGER.info("Disabled generation of {} at {}", id, chunkPos);
 			cir.setReturnValue(false);
@@ -38,7 +50,7 @@ public class MixinChunkGenerator {
 	@ModifyVariable(method = "findNearestMapStructure", at = @At("HEAD"), argsOnly = true)
 	private HolderSet<Structure> disablestructures$filterSearch(HolderSet<Structure> structures) {
 		List<Holder<Structure>> allowed = structures.stream()
-			.filter(holder -> !DisableStructures.isDisabled(holder.unwrapKey().map(key -> key.location()).orElse(null)))
+			.filter(holder -> !DisableStructures.isDisabled(holder.unwrapKey().map(DisableStructures::id).orElse(null)))
 			.toList();
 		return allowed.size() == structures.size() ? structures : HolderSet.direct(allowed);
 	}

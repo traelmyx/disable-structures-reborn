@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.mojang.logging.LogUtils;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
 import org.slf4j.Logger;
 
 import java.io.IOException;
@@ -30,8 +30,17 @@ public final class DisableStructures {
 	}
 
 	/** True if this structure id is on the list, either by name or through a "namespace:*" entry. */
-	public static boolean isDisabled(ResourceLocation id) {
-		return id != null && (disabled.contains(id.toString()) || disabledNamespaces.contains(id.getNamespace()));
+	public static boolean isDisabled(String id) {
+		return id != null && (disabled.contains(id) || disabledNamespaces.contains(id.substring(0, Math.max(0, id.indexOf(':')))));
+	}
+
+	/** "namespace:path" of a registry key (the id type was renamed in 1.21.11). */
+	public static String id(ResourceKey<?> key) {
+		//? if >=1.21.11 {
+		/*return key.identifier().toString();
+		*///?} else {
+		return key.location().toString();
+		//?}
 	}
 
 	public static void setDisabled(List<String> entries) {
@@ -40,7 +49,7 @@ public final class DisableStructures {
 		for (String entry : entries) {
 			String e = entry.trim();
 			if (e.endsWith(":*")) namespaces.add(e.substring(0, e.length() - 2));
-			else if (ResourceLocation.tryParse(e) != null) ids.add(e);
+			else if (e.matches("[a-z0-9_.-]+:[a-z0-9_./-]+")) ids.add(e);
 			else LOGGER.warn("Ignoring invalid structure id in disablestructures.json: {}", e);
 		}
 		disabled = Set.copyOf(ids);
